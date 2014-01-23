@@ -4,7 +4,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 --permuted choice 2 of key schedule
 
 entity PC2 is
-    Port ( i : in  STD_LOGIC_VECTOR (0 to 54);
+    Port ( i : in  STD_LOGIC_VECTOR (0 to 55);
            o : out  STD_LOGIC_VECTOR (0 to 47));
 end PC2;
 
