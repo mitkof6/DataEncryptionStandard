@@ -4,8 +4,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 --cipher function P
 
 entity P is
-    Port ( i : in  STD_LOGIC_VECTOR (0 downto 31);
-           o : out  STD_LOGIC_VECTOR (0 downto 31));
+    Port ( i : in  STD_LOGIC_VECTOR (0 to 31);
+           o : out  STD_LOGIC_VECTOR (0 to 31));
 end P;
 
 architecture Behavioral of P is

@@ -4,8 +4,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 --initial permuntation
 
 entity IP is
-    Port ( i : in  STD_LOGIC_VECTOR (0 downto 63);
-           L,R : out  STD_LOGIC_VECTOR (0 downto 31));
+    Port ( i : in  STD_LOGIC_VECTOR (0 to 63);
+           L,R : out  STD_LOGIC_VECTOR (0 to 31));
 end IP;
 
 architecture Behavioral of IP is
