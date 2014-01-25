@@ -6,10 +6,10 @@ use WORK.MY_ARRAY.ALL;
 entity DES_TOP is
     Port ( dataIn : in  STD_LOGIC_VECTOR (0 to 63);
            key : in  STD_LOGIC_VECTOR (0 to 63);
-			  clk, rst, soc : in STD_LOGIC;
-			  encrypt : in  STD_LOGIC;
+			  clk, rst, soc : in STD_LOGIC;--clock, reset, start of conversion
+			  encrypt : in  STD_LOGIC;--encryption '1' or decryption '0' of data
            dataOut : out  STD_LOGIC_VECTOR (0 to 63);
-			  busy, dataReady : out STD_LOGIC);
+			  busy, dataReady : out STD_LOGIC);--busy of working and data ready when finish
 end DES_TOP;
 
 architecture Behavioral of DES_TOP is
@@ -39,16 +39,19 @@ signal nxState : state;
 signal counter, keySelector : STD_LOGIC_VECTOR(3 downto 0);
 
 --internal signals
-signal Lint_in, Lint_out, Rint_in, Rint_out : STD_LOGIC_VECTOR(0 to 31); 
-signal Kn_int : ARRAY47;
-signal Kn_vec : STD_LOGIC_VECTOR(0 to 47);
+signal Lin_inter, Lout_inter, Rin_inter, Rout_inter : STD_LOGIC_VECTOR(0 to 31); 
+signal Kn_inter : ARRAY47;
+signal Kn_vec_inter : STD_LOGIC_VECTOR(0 to 47);
+signal encryption_int : STD_LOGIC;
 
 begin
-	KS : KEY_SCHEDULE port map(key, Kn_int);
+	--key schedule
+	KS : KEY_SCHEDULE port map(key, Kn_inter);
 	
-	ML : MAIN_LOOP port map(Lint_in, Rint_in, Kn_vec, Lint_out, Rint_out);
+	--main loop
+	ML : MAIN_LOOP port map(Lin_inter, Rin_inter, Kn_vec_inter, Lout_inter, Rout_inter);
 	
-	Kn_vec <= Kn_int(conv_integer(keySelector));
+	Kn_vec_inter <= Kn_inter(conv_integer(keySelector));
 	
 	process(clk, rst)
 	
@@ -67,36 +70,44 @@ begin
 					if soc = '0' then
 						nxState <= WAITDATA;
 					else
-						Lint_in <= dataIn(57) & dataIn(49) & dataIn(41) & dataIn(33) & dataIn(25) & dataIn(17) & 
+						--initial permutation
+						Lin_inter <= dataIn(57) & dataIn(49) & dataIn(41) & dataIn(33) & dataIn(25) & dataIn(17) & 
                           dataIn(9)  & dataIn(1)  & dataIn(59) & dataIn(51) & dataIn(43) & dataIn(35) & 
                           dataIn(27) & dataIn(19) & dataIn(11) & dataIn(3)  & dataIn(61) & dataIn(53) & 
                           dataIn(45) & dataIn(37) & dataIn(29) & dataIn(21) & dataIn(13) & dataIn(5)  & 
                           dataIn(63) & dataIn(55) & dataIn(47) & dataIn(39) & dataIn(31) & dataIn(23) & 
                           dataIn(15) & dataIn(7);
  
-						Rint_in <= dataIn(56) & dataIn(48) & dataIn(40) & dataIn(32) & dataIn(24) & dataIn(16) & 
+						Rin_inter <= dataIn(56) & dataIn(48) & dataIn(40) & dataIn(32) & dataIn(24) & dataIn(16) & 
                           dataIn(8)  & dataIn(0)  & dataIn(58) & dataIn(50) & dataIn(42) & dataIn(34) & 
                           dataIn(26) & dataIn(18) & dataIn(10) & dataIn(2)  & dataIn(60) & dataIn(52) & 
                           dataIn(44) & dataIn(36) & dataIn(28) & dataIn(20) & dataIn(12) & dataIn(4)  & 
                           dataIn(62) & dataIn(54) & dataIn(46) & dataIn(38) & dataIn(30) & dataIn(22) & 
                           dataIn(14) & dataIn(6);
-																																
+							
+						--output signals
 						busy <= '1';
+						
+						--state
 						nxState <= ROUND;
 						counter <= "0000";
 						
+						--encryption/decryption
 						if encrypt = '1' then 
 							keySelector <= "0000";
 						else
 							keySelector <= "1111";
 						end if;
+						
+						--assigne internal to prevent changes
+						encryption_int <= encrypt;
 					end if;
 					
 				when ROUND =>
-					Lint_in <= Lint_out;
-					Rint_in <= Rint_out;
+					Lin_inter <= Lout_inter;
+					Rin_inter <= Rout_inter;
 					
-					if encrypt = '1' then 
+					if encryption_int = '1' then 
 						keySelector <= keySelector + '1';
 					else
 						keySelector <= keySelector - '1';
@@ -105,32 +116,36 @@ begin
 					counter <= counter + '1';
 					
 					if counter = "1111" then
-						dataOut <= Lint_out(7)  & Rint_out(7)  & Lint_out(15) & Rint_out(15) & 
-                             Lint_out(23) & Rint_out(23) & Lint_out(31) & Rint_out(31) & 
-                             Lint_out(6)  & Rint_out(6)  & Lint_out(14) & Rint_out(14) & 
-                             Lint_out(22) & Rint_out(22) & Lint_out(30) & Rint_out(30) & 
-                             Lint_out(5)  & Rint_out(5)  & Lint_out(13) & Rint_out(13) & 
-                             Lint_out(21) & Rint_out(21) & Lint_out(29) & Rint_out(29) & 
-                             Lint_out(4)  & Rint_out(4)  & Lint_out(12) & Rint_out(12) & 
-                             Lint_out(20) & Rint_out(20) & Lint_out(28) & Rint_out(28) & 
-                             Lint_out(3)  & Rint_out(3)  & Lint_out(11) & Rint_out(11) & 
-                             Lint_out(19) & Rint_out(19) & Lint_out(27) & Rint_out(27) & 
-                             Lint_out(2)  & Rint_out(2)  & Lint_out(10) & Rint_out(10) & 
-                             Lint_out(18) & Rint_out(18) & Lint_out(26) & Rint_out(26) & 
-                             Lint_out(1)  & Rint_out(1)  & Lint_out(9)  & Rint_out(9)  & 
-                             Lint_out(17) & Rint_out(17) & Lint_out(25) & Rint_out(25) & 
-                             Lint_out(0)  & Rint_out(0)  & Lint_out(8)  & Rint_out(8)  & 
-                             Lint_out(16) & Rint_out(16) & Lint_out(24) & Rint_out(24);
+						dataOut <= Lout_inter(7)  & Rout_inter(7)  & Lout_inter(15) & Rout_inter(15) & 
+                             Lout_inter(23) & Rout_inter(23) & Lout_inter(31) & Rout_inter(31) & 
+                             Lout_inter(6)  & Rout_inter(6)  & Lout_inter(14) & Rout_inter(14) & 
+                             Lout_inter(22) & Rout_inter(22) & Lout_inter(30) & Rout_inter(30) & 
+                             Lout_inter(5)  & Rout_inter(5)  & Lout_inter(13) & Rout_inter(13) & 
+                             Lout_inter(21) & Rout_inter(21) & Lout_inter(29) & Rout_inter(29) & 
+                             Lout_inter(4)  & Rout_inter(4)  & Lout_inter(12) & Rout_inter(12) & 
+                             Lout_inter(20) & Rout_inter(20) & Lout_inter(28) & Rout_inter(28) & 
+                             Lout_inter(3)  & Rout_inter(3)  & Lout_inter(11) & Rout_inter(11) & 
+                             Lout_inter(19) & Rout_inter(19) & Lout_inter(27) & Rout_inter(27) & 
+                             Lout_inter(2)  & Rout_inter(2)  & Lout_inter(10) & Rout_inter(10) & 
+                             Lout_inter(18) & Rout_inter(18) & Lout_inter(26) & Rout_inter(26) & 
+                             Lout_inter(1)  & Rout_inter(1)  & Lout_inter(9)  & Rout_inter(9)  & 
+                             Lout_inter(17) & Rout_inter(17) & Lout_inter(25) & Rout_inter(25) & 
+                             Lout_inter(0)  & Rout_inter(0)  & Lout_inter(8)  & Rout_inter(8)  & 
+                             Lout_inter(16) & Rout_inter(16) & Lout_inter(24) & Rout_inter(24);
 						nxState <= FINAL;
 					else
 						nxState <= ROUND;
 					end if;
+					
 				when FINAL =>
 					busy <= '0';
 					dataReady <= '1';
 					nxState <= WAITDATA;
+					
 			end case;
+			
 		end if;
+		
 	end process;
 
 end Behavioral;

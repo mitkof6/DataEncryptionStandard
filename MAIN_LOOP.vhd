@@ -1,6 +1,8 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
+--internal loop
+
 entity MAIN_LOOP is
     Port ( Lin : in  STD_LOGIC_VECTOR (0 to 31);
            Rin : in  STD_LOGIC_VECTOR (0 to 31);
