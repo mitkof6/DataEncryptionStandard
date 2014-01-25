@@ -13,7 +13,7 @@ Description
 Language: VHDL
 
 * DES_TOP: Top level container
-  *IP, IIP: Internal assignement
+  * IP, IIP: Internal assignement
   * MAIN_LOOP: The loop funcion
     * F: Chiper function
       * E: Expansion
