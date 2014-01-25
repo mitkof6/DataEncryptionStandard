@@ -7,6 +7,7 @@ entity DES_TOP is
     Port ( dataIn : in  STD_LOGIC_VECTOR (0 to 63);
            key : in  STD_LOGIC_VECTOR (0 to 63);
 			  clk, rst, soc : in STD_LOGIC;
+			  encrypt : in  STD_LOGIC;
            dataOut : out  STD_LOGIC_VECTOR (0 to 63);
 			  busy, dataReady : out STD_LOGIC);
 end DES_TOP;
@@ -55,7 +56,7 @@ begin
 		if rst = '1' then
 			nxState <= WAITDATA;
 			counter <= "0000";
-			keySelector <= "0000";
+			
 			busy <= '0';
 			dataReady <= '0';
 		elsif CLK'EVENT and CLK = '1'then
@@ -82,18 +83,28 @@ begin
 																																
 						busy <= '1';
 						nxState <= ROUND;
-						keySelector <= "0000";
 						counter <= "0000";
+						
+						if encrypt = '1' then 
+							keySelector <= "0000";
+						else
+							keySelector <= "1111";
+						end if;
 					end if;
 					
 				when ROUND =>
 					Lint_in <= Lint_out;
 					Rint_in <= Rint_out;
 					
-					keySelector <= keySelector + '1';
+					if encrypt = '1' then 
+						keySelector <= keySelector + '1';
+					else
+						keySelector <= keySelector - '1';
+					end if;
+					
 					counter <= counter + '1';
 					
-					if counter = "1110" then
+					if counter = "1111" then
 						dataOut <= Lint_out(7)  & Rint_out(7)  & Lint_out(15) & Rint_out(15) & 
                              Lint_out(23) & Rint_out(23) & Lint_out(31) & Rint_out(31) & 
                              Lint_out(6)  & Rint_out(6)  & Lint_out(14) & Rint_out(14) & 

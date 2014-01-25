@@ -45,7 +45,7 @@ begin
 		GEN_CD_DOUBLE:
 		if((i>2 and i<9) or (i>9 and i<16)) generate
 			C(i) <= C(i-1)(2 to 27) & C(i-1)(0) & C(i-1)(1);
-			D(i) <= D(i-1)(2 to 27) & D(i-1)(0) & C(i-1)(1);
+			D(i) <= D(i-1)(2 to 27) & D(i-1)(0) & D(i-1)(1);
 		end generate GEN_CD_DOUBLE;
 		
 	end generate GEN_CD;
