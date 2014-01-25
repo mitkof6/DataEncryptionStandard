@@ -2,9 +2,11 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use WORK.MY_ARRAY.ALL;
 
+--key schedule
+
 entity KEY_SCHEDULE is
-    Port ( KEY : in  STD_LOGIC_VECTOR (0 to 63);
-           KN : out  ARRAY47);
+    Port ( key : in  STD_LOGIC_VECTOR (0 to 63);
+           Kn : out  ARRAY47);
 end KEY_SCHEDULE;
 
 architecture Behavioral of KEY_SCHEDULE is
@@ -29,7 +31,7 @@ signal CON : ARRAY55;
 		
 begin
 
-	PerCh10 : PC1 port map(KEY, C(0),D(0));
+	PerCh10 : PC1 port map(key, C(0),D(0));
 	
 	--generate C(i) D(i)
 	GEN_CD :
@@ -57,7 +59,7 @@ begin
 	--generate K1...K16
 	GEN_KEYS :
 	for i in 0 to 15 generate
-		PerCh2 : PC2 port map(CON(i), KN(i));
+		PerCh2 : PC2 port map(CON(i), Kn(i));
 	end generate GEN_KEYS;
 	
 end Behavioral;
