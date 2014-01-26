@@ -83,7 +83,7 @@ BEGIN
 		wait for clk_period*7;
 		
 		--decryption
-		dataIn <= x"82dcbafbdeab6602";
+		dataIn <= dataOut;
 		soc <= '1';
 		wait for clk_period*10;
 		soc <= '0';
